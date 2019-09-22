@@ -11,7 +11,11 @@ const ProductContext = React.createContext();
 class ProductProvider extends Component{
     state={
         products:[],
-        detailProduct:detailProduct
+        detailProduct:detailProduct,
+        cart:[],
+        modalOpen: true,
+        modalProduct: detailProduct,
+
     };
     componentDidMount(){
         this.setProducts();
@@ -27,11 +31,35 @@ class ProductProvider extends Component{
             return{products:tempProducts}
         });
     };
-    handleDetail=()=>{
-        console.log('hola, detalles');
+
+    getItem = id=>{
+        const product = this.state.products.find(item => item.id ===id);
+        return product;
     };
-    addToCart=()=>{
-        console.log('hola ,agregar al carrito');
+
+    handleDetail= id =>{
+        const product =this.getItem(id);
+        this.setState(()=>{
+            return {detailProduct:product}
+        });
+    };
+    addToCart=(id)=>{
+        let tempProducts=[...this.state.products];
+        const index=tempProducts.indexOf(this.getItem(id));
+        const product = tempProducts[index];
+        product.inCart = true;
+        product.count=1;
+        const price= product.price;
+        product.total=price;
+        this.setState(
+            ()=>{
+                return{products:tempProducts,cart:[this.state.cart,product] };
+            },
+            ()=>{
+                console.log(this.state);
+             }
+        );
+
     };
     /*tester =()=>{
         console.log('estado de productos:',this.state.products[0].inCart);
@@ -50,16 +78,30 @@ class ProductProvider extends Component{
         })
     };*/
     /* <button onClick={this.tester}>test me</button> esto en el render para prueba de estado*/
-       
+    
+    openModal = id =>{
+        const product= this.getItem(id);
+        this.setState(()=>{
+            return {modalProdact:product,modalOpen:true}
+        });
+    };
+    closeModal=()=>{
+        this.setState(()=>{
+            return {modalOpen:false}
+        });
+    };
 
     render(){
         return(
             <ProductContext.Provider 
-            value={{
-                ...this.state,
-                handleDetail:this.handleDetail,
-                addToCart:this.addToCart,
-            }}>
+                value={{
+                    ...this.state,
+                    handleDetail:this.handleDetail,
+                    addToCart:this.addToCart,
+                    openModal:this.openModal,
+                    closeModal:this.closeModal
+                }}
+            >
            
             {this.props.children}
             </ProductContext.Provider>
